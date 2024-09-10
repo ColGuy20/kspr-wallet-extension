@@ -31,11 +31,15 @@ const formatBalance = (balance: number | null | undefined): string => {
   }
 };
 
-// Generates a random number between 1 and 10 for the default image
 const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-  const randomImageNumber = Math.floor(Math.random() * 10) + 1;
-  e.currentTarget.src = `/popup/ksprwallet${randomImageNumber}.jpg`; // Use random default image
-  e.currentTarget.onerror = null; // Prevent infinite loop if all images fail
+  const randomImageNumber = Math.floor(Math.random() * 4) + 1;
+
+  // Full fallback image URL from GitHub repository
+  const fallbackImageUrl = `https://raw.githubusercontent.com/coinchimp/kspr-wallet-extension/main/chrome-extension/public/token-logos/ksprwallet${randomImageNumber}.png`;
+
+  // Set fallback image URL directly if not already set
+  e.currentTarget.src = fallbackImageUrl;
+  e.currentTarget.onerror = null; // Stop further error handling after retry
 };
 
 const Main: React.FC<MainProps> = ({ isLight, passcode, onSend, onReceive, onActions }) => {
@@ -158,7 +162,9 @@ const Main: React.FC<MainProps> = ({ isLight, passcode, onSend, onReceive, onAct
 
   const getTokenImage = (symbol: string) => {
     const token = tokensData.find(token => token.symbol.toLowerCase() === symbol.toLowerCase());
-    return token ? token.image : `ksprwallet${Math.floor(Math.random() * 10) + 1}.jpg`; // Random default image if not found
+
+    // Return the image if found, otherwise return undefined
+    return token ? token.image : '';
   };
 
   return (
@@ -231,7 +237,7 @@ const Main: React.FC<MainProps> = ({ isLight, passcode, onSend, onReceive, onAct
             <div
               className={`rounded-full p-4 ${
                 isLight ? 'bg-gray-100' : 'bg-gray-800'
-              } mb-2 hover:scale-105 transition duration-300 ease-in-out ${
+              } mb-2 hover:scale-105 transition duration-300 ease-in-out cursor-pointer ${
                 isLight ? 'hover:bg-gray-200 hover:text-gray-900' : 'hover:bg-gray-700 hover:text-gray-100'
               }`}
               onClick={action === 'Send' ? onSend : action === 'Receive' ? onReceive : undefined}>
@@ -263,7 +269,7 @@ const Main: React.FC<MainProps> = ({ isLight, passcode, onSend, onReceive, onAct
             onClick={onActions}>
             <div className="flex items-center space-x-4">
               <img
-                src={getTokenImage(token.symbol)}
+                src={getTokenImage(token.symbol) || 'invalid-url'}
                 alt={token.name}
                 className="h-9 w-9 rounded-full"
                 onError={handleImageError}
